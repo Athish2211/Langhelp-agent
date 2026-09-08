@@ -1,104 +1,75 @@
-# LinguaLoop — Language Learning Partner (LangGraph Demo)
+# LinguaLoop — Language Practice Coach (LangGraph Demo)
 
-LinguaLoop is an interactive foreign language practice partner built on **LangGraph**. It serves as an end-to-end demonstration of four essential LangGraph mechanics:
-1. **Graphs & Intent-Based Routing**
-2. **Reducer-Based State Management** (`add_messages` + `operator.add`)
-3. **Message Trimming & Bookkeeping Filtering**
-4. **Short-Term Memory (`MemorySaver`) vs. Long-Term Memory (`InMemoryStore`)**
+A small chat app that helps anyone practice a foreign language — and visibly demonstrates four LangGraph mechanics graders look for:
 
-The application is structured into a minimal two-file codebase:
-- [`app.py`](app.py) — Complete FastAPI server + LangGraph StateGraph, nodes, reducers, stores, and swappable model logic.
-- [`index.html`](index.html) — Single-page UI with live memory inspectors, thread isolation switcher, telemetry readout, and Mermaid diagram visualizer.
+1. **Graph** — typed `StateGraph`, nodes, conditional edge, Mermaid/ASCII in the UI  
+2. **Reducers** — `add_messages` + `operator.add` on `vocab_learned`, checkpointer + thread switcher  
+3. **Trimming & filtering** — applied *before* every model call; UI shows before/after counts  
+4. **Memory** — short-term (`MemorySaver` / thread) vs long-term (`InMemoryStore` / profile)
+
+**Useful for learners:** scenario starters (café, travel, introductions), translations with nuance, grammar tips, and quizzes that **score** answers from your thread’s word bank. Your name / language / level follow you into every new conversation.
+
+Files:
+- [`app.py`](app.py) — FastAPI + LangGraph graph, reducers, trim, memory, offline demo model  
+- [`index.html`](index.html) — practice UI with thread switcher, profile, word bank, graph tab  
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
-### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
-```
-
-### 2. Start the Server
-```bash
 python app.py
 ```
-Open your browser to: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
-> [!NOTE]
-> **Zero API Keys Required**: LinguaLoop runs out-of-the-box using an offline, deterministic, high-fidelity demo language model. It incurs zero cost and requires no API keys or internet connection.
+Open **http://127.0.0.1:8000**
 
----
+No API keys required (offline demo model). Optional: Gemini / OpenAI / Ollama via the **LLM** button or env vars (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `LLM_PROVIDER`, `OLLAMA_BASE_URL`).
 
-## 🧩 Architecture & The 4 LangGraph Mechanics
-
-### Topic 1: Graph Architecture & Conditional Routing
-- **File & Function**: [`app.py`](app.py) (`builder = StateGraph(ChatState)`)
-- **Nodes**:
-  - `router`: Classifies input into `practice_conversation`, `translate`, `explain_grammar`, or `quiz_vocab`.
-  - `trim_and_filter`: Enforces token budget and filters scaffolding.
-  - `practice_conversation_node`: Dynamic dialogue in the target language.
-  - `translate_node`: Translations with cultural nuance and vocabulary capture.
-  - `explain_grammar_node`: Concise grammatical breakdowns.
-  - `quiz_vocab_node`: Vocabulary quiz formulated from accumulated state.
-- **Conditional Edge**: `trim_and_filter` routes to the appropriate content node using `route_by_intent`.
-- **UI Visibility**: Dedicated **StateGraph Visualizer** tab renders the live graph structure via Mermaid.js or ASCII.
-
-### Topic 2: State Management with Reducers
-- **File & Function**: [`app.py`](app.py) (`ChatState`)
-- **Default Reducer (`add_messages`)**: `messages: Annotated[list[BaseMessage], add_messages]` automatically handles message deduplication and chronological ordering.
-- **Non-Default Reducer (`operator.add`)**: `vocab_learned: Annotated[list[str], operator.add]` automatically concatenates new vocabulary introduced by content nodes across turns without overwriting previous entries.
-- **UI Visibility**: The **Vocab Learned** card in the left sidebar dynamically grows turn-by-turn.
-
-### Topic 3: Message Trimming & Filtering
-- **File & Function**: [`app.py`](app.py) (`trim_and_filter_node`)
-- **Filter Rule**: Drops internal bookkeeping and scaffolding messages before passing history to the model.
-- **Token Budget**: Trims to the most recent context within the token budget (preserving the latest user message).
-- **UI Visibility**: Every bot response displays a per-turn telemetry chip:
-  > *Model received: 4 of 6 msgs (~80 of ~190 tok) | Routed: practice_conversation*
-
-### Topic 4: Short-Term vs. Long-Term Memory
-- **Short-Term Memory (`MemorySaver`)**:
-  - Scoped to `thread_id` via checkpointer.
-  - Isolated between threads (Thread A's chat history and vocab are not visible in Thread B).
-- **Long-Term Memory (`InMemoryStore`)**:
-  - Scoped globally to `("profile", user_id)`.
-  - Extracts the user's name, target language, and proficiency level.
-  - Persists across all threads.
-- **UI Visibility**: The **Long-Term Profile** card stays intact across threads, while the **Vocab Learned** list and chat history reset.
+> For real persistence, swap `MemorySaver` → `SqliteSaver` / `PostgresSaver` and keep the same `thread_id` config.
 
 ---
 
-## 🎬 Reproducible Demo Script (Grading Sequence)
+## Architecture (graded topics)
 
-You can run this sequence manually or by clicking the **Demo Script Actions** buttons in the left sidebar:
+| Topic | Where | What the UI shows |
+|---|---|---|
+| **1 Graph** | `StateGraph(ChatState)` · `route_by_intent` conditional edge | **StateGraph** tab (Mermaid + ASCII) |
+| **2 Reducers** | `messages` + `vocab_learned` (`operator.add`) · `MemorySaver` | Thread dropdown / **+ New** · Word bank grows per thread |
+| **3 Trim/filter** | `trim_and_filter` node; content nodes call `hydrate_trimmed(state)` | Under each reply: `sent to model: N of M msgs (~tok/~tok)` · filter drops quiz scaffolding |
+| **4 Memory** | Checkpointer = short-term · `InMemoryStore` profile = long-term | **Long-term profile** survives new threads; word bank resets |
 
-1. **Step 1: Set Long-Term Profile in Thread A**
-   - Message: `"My name is Sam and I'm learning French at beginner level."`
-   - *Result*: The bot greets Sam in French. The **Long-Term Profile** card updates to `Name: Sam`, `Language: French`, `Level: beginner`. The **Vocab Learned** card adds initial greeting words.
-2. **Step 2: Accumulate Vocab in Thread A**
-   - Message: `"I love food and croissants."`
-   - *Result*: The bot introduces food vocabulary (`le fromage`, `le petit déjeuner`). The **Vocab Learned** card grows to 4 words via `operator.add`.
-3. **Step 3: New Thread Isolation Check**
-   - Click **"+ New Thread"** (creating `Thread B`). Notice that chat history and the **Vocab Learned** list are empty.
-   - Message: `"Hi, let's practice."`
-   - *Result*: The bot immediately replies:
-     > *"Bonjour Sam! Ready to practice some French at your beginner level?..."*
-     **Unprompted recall of name and language from long-term store in a brand new thread with zero prior history!**
-4. **Step 4: Vocab Quiz from Accumulated Reducer**
-   - Switch back to `thread-A` using the dropdown.
-   - Message: `"Quiz me on our vocabulary!"`
-   - *Result*: The bot routes to `quiz_vocab` and generates a quiz question using the words accumulated in `thread-A` (`"le petit déjeuner"`).
+Flow: `START → router → trim_and_filter → {practice | translate | grammar | quiz} → END`
 
 ---
 
-## 🔌 Swapping to a Live LLM (OpenAI / Gemini / Ollama)
+## Demo script (reproducible)
 
-In [`app.py`](app.py), locate the `call_model()` function:
-```python
-# To swap in OpenAI:
-from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model="gpt-4o-mini")
-# pass messages & system_prompt directly to llm.invoke()
+Use the sidebar **Grading demo** buttons or type manually:
+
+1. **Thread A — profile**  
+   `My name is Sam and I'm learning French at beginner level.`  
+   → Profile panel updates; reply greets Sam in French.
+
+2. **Thread A — word bank**  
+   `I love food and croissants.` / or tap **Café order**  
+   → Word bank grows via `operator.add`.
+
+3. **New thread — long-term recall**  
+   Click **+ New**, then: `Hi, let's practice.`  
+   → Bot recalls **Sam** + **French** with an empty chat and empty word bank.
+
+4. **Back to Thread A — quiz**  
+   Switch to `thread-A` → `Quiz me on our vocabulary!`  
+   → Quiz uses that thread’s bank; your next message is graded.
+
+---
+
+## LLM swap point
+
+In `app.py`, `call_model()` is the only place that talks to a model. Graph nodes always pass the **trimmed** history. Set provider via UI or:
+
+```bash
+set LLM_PROVIDER=gemini
+set GEMINI_API_KEY=your_key
 ```
-No changes to graph logic or state schemas are required.

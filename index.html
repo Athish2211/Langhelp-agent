@@ -3,2047 +3,956 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LinguaLoop — LangGraph Language Practice Partner</title>
-  <meta name="description" content="AI Language Learning Practice Partner powered by LangGraph with StateGraph, Reducers, Trimming, and Short/Long-Term Memory." />
+  <title>LinguaLoop — Language Practice Coach</title>
+  <meta name="description" content="Practice any language with a coach that remembers you — converse, translate, grammar tips, and quizzes from your own word bank. Built on LangGraph." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
-      --bg-base: #0a0f1d;
-      --bg-sidebar: #0f172a;
-      --bg-surface: #131d35;
-      --bg-card: rgba(26, 38, 66, 0.7);
-      --bg-card-hover: rgba(37, 52, 88, 0.8);
-      --bg-input: rgba(19, 29, 53, 0.85);
-
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-medium: rgba(255, 255, 255, 0.14);
-      --border-accent: rgba(99, 102, 241, 0.4);
-
-      --primary: #6366f1;
-      --primary-light: #818cf8;
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --emerald: #10b981;
-      --emerald-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --cyan: #06b6d4;
-
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --radius-full: 9999px;
-
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.3);
-      --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.25);
+      --ink: #14212b;
+      --ink-soft: #3d4f5c;
+      --muted: #6b7c88;
+      --line: #c5d0d8;
+      --paper: #eef3f6;
+      --paper-2: #e2eaef;
+      --panel: #f7fafc;
+      --teal: #0f766e;
+      --teal-deep: #0b5f59;
+      --coral: #c45c26;
+      --ok: #1b7a4a;
+      --warn: #a16207;
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(20, 33, 43, 0.08);
+      --font: "Manrope", system-ui, sans-serif;
+      --display: "Fraunces", Georgia, serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Outfit', sans-serif;
-      background-color: var(--bg-base);
-      color: var(--text-primary);
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 0% 0%, rgba(15, 118, 110, 0.09), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(196, 92, 38, 0.07), transparent 45%),
+        linear-gradient(180deg, #f4f7f9 0%, var(--paper) 40%, var(--paper-2) 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.07) 0%, transparent 40%);
     }
 
-    /* Top Navigation Header */
     header {
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border-subtle);
-      height: 60px;
-      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      z-index: 40;
-      flex-shrink: 0;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 250, 252, 0.85);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
 
-    .brand-section {
+    .brand {
       display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .btn-toggle-sidebar {
-      background: none;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      border-radius: var(--radius-sm);
-      width: 34px;
-      height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-toggle-sidebar:hover {
-      color: var(--text-primary);
-      border-color: var(--border-medium);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .logo-container {
-      display: flex;
-      align-items: center;
+      align-items: baseline;
       gap: 10px;
-      text-decoration: none;
-      color: inherit;
     }
 
-    .logo-mark {
-      width: 34px;
-      height: 34px;
-      background: var(--primary-gradient);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .logo-mark svg {
-      width: 20px;
-      height: 20px;
-      stroke: white;
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-title {
-      font-size: 1.15rem;
+    .brand h1 {
+      font-family: var(--display);
+      font-size: 1.55rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1.2;
+      line-height: 1;
     }
 
-    .brand-subtitle {
-      font-size: 0.72rem;
-      color: var(--text-muted);
+    .brand span {
+      color: var(--muted);
+      font-size: 0.85rem;
       font-weight: 500;
-    }
-
-    /* Header Nav Tabs */
-    .view-switcher {
-      display: flex;
-      background: rgba(19, 29, 53, 0.7);
-      padding: 3px;
-      border-radius: var(--radius-full);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .view-tab {
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      padding: 6px 16px;
-      font-size: 0.84rem;
-      font-weight: 500;
-      border-radius: var(--radius-full);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .view-tab:hover {
-      color: var(--text-primary);
-    }
-
-    .view-tab.active {
-      background: var(--primary-gradient);
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
     }
 
     .header-actions {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
-    }
-
-    .btn-action {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      padding: 6px 13px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .btn-action:hover {
-      color: var(--text-primary);
-      border-color: var(--border-medium);
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .btn-action-sparkle {
-      background: rgba(99, 102, 241, 0.15);
-      border-color: rgba(99, 102, 241, 0.35);
-      color: #c7d2fe;
-    }
-
-    .btn-action-sparkle:hover {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
-    }
-
-    /* Main Container Layout */
-    .app-body {
-      display: flex;
-      flex: 1;
-      height: calc(100vh - 60px);
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 320px;
-      min-width: 280px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease, margin 0.25s ease;
-      z-index: 30;
-      flex-shrink: 0;
-    }
-
-    .sidebar.collapsed {
-      margin-left: -320px;
-    }
-
-    .sidebar-top {
-      padding: 16px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .btn-new-chat {
-      width: 100%;
-      background: var(--primary-gradient);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-md);
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 8px;
-      box-shadow: var(--shadow-glow);
-      transition: all 0.2s ease;
-      font-family: inherit;
     }
 
-    .btn-new-chat:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
-
-    .sidebar-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
+    .thread-bar {
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 6px 4px 12px;
     }
 
-    .sidebar-section-title {
+    .thread-bar label {
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .badge-subtle {
-      font-size: 0.65rem;
-      padding: 2px 7px;
-      border-radius: var(--radius-full);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-secondary);
-      font-weight: 500;
-      text-transform: none;
-      letter-spacing: normal;
-    }
-
-    /* Thread / Conversation List */
-    .threads-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-height: 140px;
-      overflow-y: auto;
-    }
-
-    .thread-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      font-size: 0.85rem;
-      font-weight: 500;
-      user-select: none;
-    }
-
-    .thread-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-primary);
-    }
-
-    .thread-item.active {
-      background: rgba(99, 102, 241, 0.14);
-      border-color: rgba(99, 102, 241, 0.3);
-      color: #c7d2fe;
+      color: var(--muted);
       font-weight: 600;
     }
 
-    .thread-title-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    select, button, textarea {
+      font: inherit;
     }
 
-    .thread-active-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--primary-light);
-    }
-
-    /* Learner Profile Card (Topic 4 Long-term Memory) */
-    .profile-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      position: relative;
-      transition: border-color 0.2s ease;
-    }
-
-    .profile-card:hover {
-      border-color: var(--border-accent);
-    }
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .profile-title {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge-global {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      color: #6ee7b7;
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: var(--radius-full);
-    }
-
-    .profile-meta-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .profile-meta-item {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 6px 9px;
-    }
-
-    .profile-meta-item.full {
-      grid-column: span 2;
-    }
-
-    .profile-meta-label {
-      font-size: 0.67rem;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 2px;
-      display: block;
-    }
-
-    .profile-meta-val {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #f1f5f9;
-    }
-
-    .memory-note {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      line-height: 1.35;
-      border-top: 1px dashed var(--border-subtle);
-      padding-top: 8px;
-    }
-
-    /* Vocabulary Learned Card (Topic 2 Reducer) */
-    .vocab-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .vocab-chips-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      max-height: 130px;
-      overflow-y: auto;
-      padding-right: 2px;
-    }
-
-    .vocab-chip {
-      background: rgba(99, 102, 241, 0.12);
-      border: 1px solid rgba(99, 102, 241, 0.28);
-      color: #e0e7ff;
-      border-radius: var(--radius-full);
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .vocab-empty {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-style: italic;
-      padding: 8px 0;
-      text-align: center;
-      width: 100%;
-    }
-
-    /* Center Main Chat View */
-    .main-workspace {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      background: rgba(10, 15, 29, 0.4);
-      height: 100%;
-      overflow: hidden;
-    }
-
-    /* Chat Area */
-    .chat-view {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .chat-header-bar {
-      padding: 10px 24px;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-
-    .chat-active-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .chat-thread-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 3px 9px;
-      border-radius: var(--radius-full);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .chat-status-text {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Message Stream */
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 24px 16px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Empty Welcome Screen */
-    .empty-chat-welcome {
-      max-width: 680px;
-      margin: auto;
-      text-align: center;
-      padding: 30px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .welcome-icon-wrap {
-      width: 54px;
-      height: 54px;
-      background: var(--primary-gradient);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .welcome-icon-wrap svg {
-      width: 28px;
-      height: 28px;
-      stroke: white;
-    }
-
-    .welcome-heading {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #f8fafc;
-      letter-spacing: -0.02em;
-    }
-
-    .welcome-sub {
-      font-size: 0.92rem;
-      color: var(--text-secondary);
-      max-width: 500px;
-      line-height: 1.5;
-    }
-
-    .starter-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      width: 100%;
-      margin-top: 10px;
-      text-align: left;
-    }
-
-    .starter-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-family: inherit;
-      color: inherit;
-    }
-
-    .starter-card:hover {
-      border-color: var(--primary-light);
-      background: var(--bg-card-hover);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .starter-card-title {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .starter-card-desc {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-    }
-
-    /* Message Bubbles */
-    .message-wrap {
-      display: flex;
-      flex-direction: column;
-      max-width: 820px;
-      width: 100%;
-      margin: 0 auto;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    .message-wrap.user {
-      align-items: flex-end;
-    }
-
-    .message-wrap.assistant {
-      align-items: flex-start;
-    }
-
-    .message-header {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      padding: 0 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .message-bubble {
-      padding: 13px 18px;
-      border-radius: 18px;
-      font-size: 0.93rem;
-      line-height: 1.6;
-      max-width: 84%;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-
-    .message-wrap.user .message-bubble {
-      background: var(--primary-gradient);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
-    }
-
-    .message-wrap.assistant .message-bubble {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-bottom-left-radius: 4px;
-      color: #f1f5f9;
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Topic 3 Micro-Telemetry */
-    .message-telemetry {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 6px;
-      padding: 0 4px;
-      font-size: 0.72rem;
-    }
-
-    .telemetry-chip {
-      background: rgba(19, 29, 53, 0.9);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
-      padding: 2px 10px;
-      color: var(--text-secondary);
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .telemetry-chip strong {
-      color: #f8fafc;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 500;
-    }
-
-    .telemetry-intent {
-      color: #c084fc;
-      border-color: rgba(192, 132, 252, 0.25);
-      background: rgba(168, 85, 247, 0.08);
-    }
-
-    /* Bottom Input Bar */
-    .chat-bottom-area {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(16px);
-      border-top: 1px solid var(--border-subtle);
-      padding: 12px 24px 16px 24px;
-      flex-shrink: 0;
-    }
-
-    .chat-bottom-inner {
-      max-width: 820px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .prompt-suggestions {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-
-    .prompt-chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      border-radius: var(--radius-full);
-      padding: 4px 12px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-      font-family: inherit;
-    }
-
-    .prompt-chip:hover {
-      border-color: var(--primary-light);
-      color: var(--text-primary);
-      background: rgba(99, 102, 241, 0.12);
-    }
-
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 4px 6px 4px 14px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .input-row:focus-within {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-    }
-
-    .chat-input {
-      flex: 1;
-      background: transparent;
+    select {
       border: none;
-      color: var(--text-primary);
-      font-family: inherit;
-      font-size: 0.92rem;
+      background: transparent;
+      color: var(--ink);
+      font-weight: 600;
       outline: none;
-      padding: 8px 0;
+      max-width: 140px;
     }
 
-    .chat-input::placeholder {
-      color: var(--text-muted);
-    }
-
-    .btn-send {
-      background: var(--primary-gradient);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      flex-shrink: 0;
-    }
-
-    .btn-send:hover {
-      opacity: 0.92;
-    }
-
-    .btn-send:active {
-      transform: scale(0.96);
-    }
-
-    .btn-send:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* Graph Visualizer View */
-    .graph-view {
-      display: none;
-      flex: 1;
-      height: 100%;
-      overflow-y: auto;
-      padding: 24px;
-      flex-direction: column;
-      gap: 16px;
-      max-width: 1100px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .graph-view.active {
-      display: flex;
-    }
-
-    .graph-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: var(--shadow-md);
-    }
-
-    .graph-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .graph-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #f8fafc;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .graph-sub {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-
-    .graph-controls {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-toggle-mode {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    .btn-toggle-mode.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    .graph-display-box {
-      background: rgba(10, 15, 29, 0.85);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 24px;
-      overflow-x: auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 420px;
-    }
-
-    pre.ascii-box {
-      font-family: 'JetBrains Mono', monospace;
-      color: #a5b4fc;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      white-space: pre;
-    }
-
-    /* Modal (Guided Demo Tour) */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(6px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 20px;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .modal-backdrop.open {
-      display: flex;
-    }
-
-    .modal-window {
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 560px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .modal-header {
-      padding: 18px 22px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .modal-title-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .modal-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .btn-close-modal {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s;
-    }
-
-    .btn-close-modal:hover {
-      color: var(--text-primary);
-    }
-
-    .modal-body {
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .demo-step-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-
-    .demo-step-card:hover {
-      border-color: var(--border-accent);
-      background: var(--bg-card-hover);
-    }
-
-    .demo-step-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .demo-step-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--primary-light);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .btn-run-step {
-      background: var(--primary-gradient);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 4px 12px;
-      font-size: 0.78rem;
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 14px;
       font-weight: 600;
+      font-size: 0.88rem;
       cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
 
-    .btn-run-step:hover {
-      opacity: 0.9;
+    .btn:hover { transform: translateY(-1px); border-color: var(--ink-soft); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--teal-deep); border-color: var(--teal-deep); }
+
+    .btn-ghost { background: transparent; }
+
+    .layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 0;
     }
 
-    .demo-step-prompt {
-      font-size: 0.85rem;
-      color: #f1f5f9;
-      font-family: 'JetBrains Mono', monospace;
-      background: rgba(10, 15, 29, 0.5);
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
+    aside {
+      border-right: 1px solid var(--line);
+      background: rgba(247, 250, 252, 0.7);
+      padding: 18px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    .demo-step-purpose {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .panel .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 10px;
       line-height: 1.4;
     }
 
-    /* Animations & Scrollbar */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+    .profile-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.9rem;
+      padding: 8px 10px;
+      background: var(--paper);
+      border-radius: 8px;
+    }
+
+    .profile-row strong { color: var(--teal-deep); }
+
+    .vocab-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 36px;
+    }
+
+    .chip {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: #d9efe9;
+      color: var(--teal-deep);
+      border: 1px solid #b7ddd3;
+    }
+
+    .chip.empty {
+      background: transparent;
+      border-style: dashed;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .demo-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .demo-steps button {
+      text-align: left;
+      width: 100%;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 18px 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 250, 252, 0.5);
+    }
+
+    .tab {
+      border: none;
+      background: transparent;
+      padding: 10px 14px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab.active {
+      color: var(--teal-deep);
+      border-bottom-color: var(--teal);
+    }
+
+    .view { display: none; flex: 1; min-height: 0; flex-direction: column; }
+    .view.active { display: flex; }
+
+    .chat-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 16px 18px 12px;
+    }
+
+    .scenarios {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      animation: rise 0.45s ease both;
+    }
+
+    .scenario {
+      border: 1px dashed var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    .scenario:hover {
+      border-color: var(--teal);
+      background: #e7f5f2;
+      transform: translateY(-1px);
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-right: 4px;
+      scroll-behavior: smooth;
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      max-width: 420px;
+      padding: 28px 16px;
+      animation: rise 0.5s ease both;
+    }
+
+    .empty-state h3 {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--ink-soft);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .bubble-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: min(720px, 92%);
+      animation: rise 0.35s ease both;
+    }
+
+    .bubble-row.user { align-self: flex-end; align-items: flex-end; }
+    .bubble-row.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .bubble {
+      padding: 12px 14px;
+      border-radius: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: var(--shadow);
+    }
+
+    .bubble-row.user .bubble {
+      background: var(--ink);
+      color: #f5f8fa;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bubble-row.assistant .bubble {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 4px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .meta span {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 8px;
+    }
+
+    .meta .intent { color: var(--teal-deep); border-color: #b7ddd3; background: #e7f5f2; }
+    .meta .trim { color: var(--warn); border-color: #e8d4a8; background: #fff8e8; }
+
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      margin-top: 10px;
+    }
+
+    textarea {
+      resize: none;
+      min-height: 52px;
+      max-height: 140px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      outline: none;
+      line-height: 1.4;
+    }
+
+    textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15); }
+
+    .graph-view {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .graph-view .intro {
+      max-width: 720px;
+      margin-bottom: 14px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+
+    .graph-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+
+    .graph-card pre {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      white-space: pre;
+      color: var(--ink-soft);
+      margin-top: 12px;
+    }
+
+    .status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0 18px 10px;
+    }
+
+    .status.error { color: #b42318; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.22);
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 33, 43, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
     }
 
-    /* Responsive */
-    @media (max-width: 820px) {
-      .sidebar {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        box-shadow: var(--shadow-md);
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(440px, 100%);
+      background: var(--panel);
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      padding: 18px;
+      box-shadow: 0 20px 50px rgba(20, 33, 43, 0.2);
+      animation: rise 0.25s ease both;
+    }
+
+    .modal h3 {
+      font-family: var(--display);
+      margin-bottom: 6px;
+    }
+
+    .modal p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .field label { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+    .field input, .field select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fff;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        max-height: 42vh;
       }
-      .starter-cards {
-        grid-template-columns: 1fr;
-      }
+      .brand span { display: none; }
     }
   </style>
 </head>
 <body>
-
-  <!-- Top Navigation Header -->
   <header>
-    <div class="brand-section">
-      <button class="btn-toggle-sidebar" id="btnToggleSidebar" onclick="toggleSidebar()" title="Toggle Sidebar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-
-      <div class="logo-container">
-        <div class="logo-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-            <path d="M2 12h20"></path>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <span class="brand-title">LinguaLoop</span>
-          <span class="brand-subtitle">AI Language Partner</span>
-        </div>
-      </div>
+    <div class="brand">
+      <h1>LinguaLoop</h1>
+      <span>Practice partner that remembers you</span>
     </div>
-
-    <!-- Center View Switcher -->
-    <div class="view-switcher">
-      <button class="view-tab active" id="tabChat" onclick="switchView('chat')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-        <span>Chat</span>
-      </button>
-      <button class="view-tab" id="tabGraph" onclick="switchView('graph')">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        <span>Graph Visualizer</span>
-      </button>
-      <button class="view-tab" id="tabLLM" onclick="openConfigModal()" style="border: 1px solid rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.12);">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="10" rx="2"></rect>
-          <circle cx="12" cy="5" r="2"></circle>
-          <path d="M12 7v4"></path>
-          <line x1="8" y1="16" x2="8" y2="16"></line>
-          <line x1="16" y1="16" x2="16" y2="16"></line>
-        </svg>
-        <span id="tabLLMBadge" style="font-weight: 600; color: #c7d2fe;">LLM Engine</span>
-      </button>
-    </div>
-
-    <!-- Right Header Actions -->
     <div class="header-actions">
-      <button class="btn-action" onclick="openConfigModal()" id="btnLLMConfig" style="background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.35); color: #c7d2fe;" title="Configure LLM Provider (Gemini / OpenAI / Ollama / Offline)">
-        <span id="llmEngineBadge">🤖 LLM Engine: Offline</span>
-      </button>
-
-      <button class="btn-action btn-action-sparkle" onclick="openDemoModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        <span>Guided Demo</span>
-      </button>
-
-      <button class="btn-action" onclick="resetDemo()" title="Reset Profile & Threads">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 2v6h6"></path>
-          <path d="M21 12A9 9 0 0 0 6 5.3L3 8"></path>
-          <path d="M21 22v-6h-6"></path>
-          <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path>
-        </svg>
-        <span>Reset</span>
-      </button>
+      <div class="thread-bar" title="Short-term memory: each thread has its own chat + word bank">
+        <label for="threadSelect">Thread</label>
+        <select id="threadSelect"></select>
+        <button class="btn btn-primary" id="btnNewThread" type="button">+ New</button>
+      </div>
+      <button class="btn btn-ghost" id="btnConfig" type="button">LLM</button>
+      <button class="btn btn-ghost" id="btnReset" type="button">Reset demo</button>
     </div>
   </header>
 
-  <!-- App Workspace -->
-  <div class="app-body">
-
-    <!-- Left Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-top">
-        <button class="btn-new-chat" onclick="createNewThread()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span>New Conversation</span>
-        </button>
-      </div>
-
-      <div class="sidebar-content">
-
-        <!-- Conversations / Threads (Topic 2 & 4) -->
-        <div>
-          <div class="sidebar-section-title">
-            <span>Conversations</span>
-            <span class="badge-subtle" id="threadsCountBadge">1 active</span>
-          </div>
-          <div class="threads-list" id="threadsList">
-            <!-- Populated dynamically via JS -->
-          </div>
+  <div class="layout">
+    <aside>
+      <section class="panel">
+        <h2>Long-term profile</h2>
+        <p class="hint">Survives across threads (InMemoryStore · user_id). Say “My name is Sam and I’m learning French at beginner level.”</p>
+        <div class="profile-grid">
+          <div class="profile-row"><span>Name</span><strong id="profileName">Learner</strong></div>
+          <div class="profile-row"><span>Language</span><strong id="profileLang">Spanish</strong></div>
+          <div class="profile-row"><span>Level</span><strong id="profileLevel">beginner</strong></div>
         </div>
+      </section>
 
-        <!-- Learner Profile (Topic 4 Long-term Memory) -->
-        <div class="profile-card">
-          <div class="profile-header">
-            <div class="profile-title">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <span>Learner Profile</span>
-            </div>
-            <span class="badge-global" title="Persisted in InMemoryStore across all threads">Global</span>
-          </div>
-
-          <div class="profile-meta-grid">
-            <div class="profile-meta-item">
-              <span class="profile-meta-label">Name</span>
-              <span class="profile-meta-val" id="profileName">Sam</span>
-            </div>
-            <div class="profile-meta-item">
-              <span class="profile-meta-label">Language</span>
-              <span class="profile-meta-val" id="profileLang">French</span>
-            </div>
-            <div class="profile-meta-item full">
-              <span class="profile-meta-label">Level</span>
-              <span class="profile-meta-val" id="profileLevel">beginner</span>
-            </div>
-          </div>
-
-          <p class="memory-note">
-            <strong>Topic 4:</strong> Saved in LangGraph <code>BaseStore</code>. Persists automatically when switching or creating threads.
-          </p>
+      <section class="panel">
+        <h2>Word bank</h2>
+        <p class="hint">Short-term · this thread only. Grows via <code>operator.add</code>. New thread = empty bank.</p>
+        <div class="vocab-list" id="vocabList">
+          <span class="chip empty">No words yet — chat or translate</span>
         </div>
-
-        <!-- Vocab Learned (Topic 2 Reducer) -->
-        <div class="vocab-card">
-          <div class="sidebar-section-title" style="margin-bottom: 0;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
-              <span style="font-weight: 600; color: var(--text-primary);">Vocab Learned</span>
-            </div>
-            <span class="badge-subtle" id="vocabCountBadge">0 words</span>
-          </div>
-
-          <div class="vocab-chips-container" id="vocabList">
-            <div class="vocab-empty">No vocabulary learned in this thread yet.</div>
-          </div>
-
-          <p class="memory-note">
-            <strong>Topic 2:</strong> Uses <code>operator.add</code> reducer channel. Accumulates across turns; scoped to this thread.
-          </p>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn" id="btnQuiz" type="button" style="flex:1">Quiz me</button>
         </div>
+      </section>
 
-      </div>
+      <section class="panel">
+        <h2>Grading demo</h2>
+        <p class="hint">Four steps that prove memory isolation + recall.</p>
+        <div class="demo-steps">
+          <button class="btn" type="button" data-demo="1">1 · Set profile (Thread A)</button>
+          <button class="btn" type="button" data-demo="2">2 · Build word bank</button>
+          <button class="btn" type="button" data-demo="3">3 · New thread recall</button>
+          <button class="btn" type="button" data-demo="4">4 · Quiz Thread A vocab</button>
+        </div>
+      </section>
     </aside>
 
-    <!-- Main Workspace Area -->
-    <main class="main-workspace">
-
-      <!-- View 1: Chat View -->
-      <div id="chatView" class="chat-view">
-
-        <!-- Active Thread Sub-header -->
-        <div class="chat-header-bar">
-          <div class="chat-active-info">
-            <span class="chat-thread-pill" id="activeThreadLabel">Thread: thread-A</span>
-            <span class="chat-status-text">Short-term checkpointer state active</span>
-          </div>
-        </div>
-
-        <!-- Chat Messages Scroll Container -->
-        <div class="chat-messages" id="chatMessages">
-
-          <!-- Empty Welcome State (Re-inserted when thread is empty) -->
-          <div class="empty-chat-welcome" id="emptyWelcomeState">
-            <div class="welcome-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m5 8 6 6"></path>
-                <path d="m4 14 6-6 2-3"></path>
-                <path d="M2 5h12"></path>
-                <path d="M7 2h1"></path>
-                <path d="m22 22-5-10-5 10"></path>
-                <path d="M14 18h6"></path>
-              </svg>
-            </div>
-            <h2 class="welcome-heading">How would you like to practice today?</h2>
-            <p class="welcome-sub">
-              Chat naturally to practice a language. Every turn demonstrates LangGraph routing, memory, and trimming in action.
-            </p>
-
-            <div class="starter-cards">
-              <button class="starter-card" onclick="sendQuickPrompt('Translate: Hello, my friend! How are you?')">
-                <div class="starter-card-title">
-                  <span>🔤</span> Translate Phrase
-                </div>
-                <div class="starter-card-desc">Translate any text and discover nuance</div>
-              </button>
-
-              <button class="starter-card" onclick="sendQuickPrompt('Explain grammar: Difference between Ser and Estar')">
-                <div class="starter-card-title">
-                  <span>📖</span> Grammar Breakdown
-                </div>
-                <div class="starter-card-desc">Understand tricky rules and conjugations</div>
-              </button>
-
-              <button class="starter-card" onclick="sendQuickPrompt('Quiz me on our vocabulary!')">
-                <div class="starter-card-title">
-                  <span>🎯</span> Quiz Vocabulary
-                </div>
-                <div class="starter-card-desc">Practice words accumulated in this thread</div>
-              </button>
-
-              <button class="starter-card" onclick="sendQuickPrompt('Let\'s practice conversation about ordering food at a restaurant.')">
-                <div class="starter-card-title">
-                  <span>💬</span> Free Conversation
-                </div>
-                <div class="starter-card-desc">Roleplay in your target language</div>
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Bottom Input Bar -->
-        <div class="chat-bottom-area">
-          <div class="chat-bottom-inner">
-            <div class="prompt-suggestions">
-              <button class="prompt-chip" onclick="setInput('Translate: Where is the nearest train station?')">🔤 Translate phrase</button>
-              <button class="prompt-chip" onclick="setInput('Explain grammar: When to use Por vs Para?')">📖 Grammar help</button>
-              <button class="prompt-chip" onclick="setInput('Quiz me on our vocabulary!')">🎯 Quiz vocab</button>
-              <button class="prompt-chip" onclick="setInput('My name is Sam and I\'m learning French.')">🧠 Update profile</button>
-            </div>
-
-            <div class="input-row">
-              <input
-                type="text"
-                id="messageInput"
-                class="chat-input"
-                placeholder="Ask for translation, grammar explanation, or practice..."
-                onkeydown="if(event.key==='Enter') sendMessage()"
-              />
-              <button id="sendBtn" class="btn-send" onclick="sendMessage()" title="Send message">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
+    <main>
+      <div class="tabs">
+        <button class="tab active" data-view="chat" type="button">Practice</button>
+        <button class="tab" data-view="graph" type="button">StateGraph</button>
       </div>
 
-      <!-- View 2: StateGraph Visualizer -->
-      <div id="graphView" class="graph-view">
-        <div class="graph-card">
-          <div class="graph-header">
-            <div>
-              <h2 class="graph-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-                <span>Compiled LangGraph Architecture</span>
-              </h2>
-              <p class="graph-sub">
-                Generated live by <code>compiled_graph.get_graph()</code> on the FastAPI server (Topic 1).
-              </p>
-            </div>
-
-            <div class="graph-controls">
-              <button class="btn-toggle-mode active" id="btnMermaidToggle" onclick="toggleGraphMode('mermaid')">Mermaid Diagram</button>
-              <button class="btn-toggle-mode" id="btnAsciiToggle" onclick="toggleGraphMode('ascii')">ASCII View</button>
+      <section class="view active" id="viewChat">
+        <div class="chat-shell">
+          <div class="scenarios" id="scenarios">
+            <button class="scenario" type="button" data-msg="Let's practice ordering at a café.">☕ Café order</button>
+            <button class="scenario" type="button" data-msg="Let's practice buying a train ticket.">🚆 Travel</button>
+            <button class="scenario" type="button" data-msg="Let's practice introducing ourselves.">👋 Introductions</button>
+            <button class="scenario" type="button" data-msg="How do you say thank you?">🔤 Translate</button>
+            <button class="scenario" type="button" data-msg="Explain a beginner grammar tip.">📘 Grammar</button>
+          </div>
+          <div class="messages" id="messages">
+            <div class="empty-state" id="emptyState">
+              <h3>Start a practice loop</h3>
+              <p>Pick a scene, introduce yourself, or ask for a translation. Your profile follows you into every new thread; your word bank stays with this conversation.</p>
             </div>
           </div>
+          <form class="composer" id="composer">
+            <textarea id="input" placeholder="Type in English or your target language…" rows="2"></textarea>
+            <button class="btn btn-primary" type="submit" id="btnSend">Send</button>
+          </form>
+        </div>
+        <div class="status" id="status">Ready · offline demo model (no API key needed)</div>
+      </section>
 
-          <div class="graph-display-box" id="graphContainer">
-            <div id="mermaidDiagram" class="mermaid">Loading LangGraph diagram...</div>
-            <pre id="asciiDiagram" class="ascii-box" style="display: none;"></pre>
-          </div>
-
-          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; background: rgba(15, 23, 42, 0.5); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <strong>Conditional Routing:</strong> <code>router</code> classifies the intent, passes state to <code>trim_and_filter</code> (Topic 3), then conditionally branches to <code>practice_conversation_node</code>, <code>translate_node</code>, <code>explain_grammar_node</code>, or <code>quiz_vocab_node</code>.
+      <section class="view" id="viewGraph">
+        <div class="graph-view">
+          <p class="intro">
+            This is the compiled LangGraph for LinguaLoop:
+            <strong>START → router → trim_and_filter → (conditional by intent) → content node → END</strong>.
+          </p>
+          <div class="graph-card">
+            <div class="mermaid" id="mermaidMount">Loading graph…</div>
+            <pre id="asciiMount"></pre>
           </div>
         </div>
-      </div>
-
+      </section>
     </main>
-
   </div>
 
-  <!-- Guided Demo Modal -->
-  <div class="modal-backdrop" id="demoModal" onclick="if(event.target===this) closeDemoModal()">
-    <div class="modal-window">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-light);">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-          </svg>
-          <h3 class="modal-title">Guided Demo Walkthrough</h3>
-        </div>
-        <button class="btn-close-modal" onclick="closeDemoModal()" title="Close">✕</button>
+  <div class="modal-backdrop" id="configModal">
+    <div class="modal">
+      <h3>LLM engine</h3>
+      <p>Default is the offline demo model. Swap in Gemini, OpenAI, or Ollama without changing graph logic.</p>
+      <div class="field">
+        <label for="cfgProvider">Provider</label>
+        <select id="cfgProvider">
+          <option value="offline">Offline demo</option>
+          <option value="gemini">Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="ollama">Ollama</option>
+        </select>
       </div>
-
-      <div class="modal-body">
-        <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">
-          Click the steps below to automatically execute the required demonstration sequence:
-        </p>
-
-        <!-- Step 1 -->
-        <div class="demo-step-card">
-          <div class="demo-step-top">
-            <span class="demo-step-badge">Step 1 • Profile Memory (Thread A)</span>
-            <button class="btn-run-step" onclick="executeDemoStep(1)">Run Step 1</button>
-          </div>
-          <div class="demo-step-prompt">"My name is Sam and I'm learning French at beginner level."</div>
-          <div class="demo-step-purpose">Sets long-term profile in BaseStore under ("profile", user_id).</div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="demo-step-card">
-          <div class="demo-step-top">
-            <span class="demo-step-badge">Step 2 • Accumulate Vocab (Thread A)</span>
-            <button class="btn-run-step" onclick="executeDemoStep(2)">Run Step 2</button>
-          </div>
-          <div class="demo-step-prompt">"I love food and croissants."</div>
-          <div class="demo-step-purpose">Tests operator.add reducer — appends French vocabulary into state["vocab_learned"].</div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="demo-step-card">
-          <div class="demo-step-top">
-            <span class="demo-step-badge">Step 3 • Cross-Thread Recall & Isolation</span>
-            <button class="btn-run-step" onclick="executeDemoStep(3)">Run Step 3</button>
-          </div>
-          <div class="demo-step-prompt">Creates Thread B & sends: "Hi, let's practice."</div>
-          <div class="demo-step-purpose">Proves unprompted long-term profile recall in brand-new Thread B while vocab list remains isolated!</div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="demo-step-card">
-          <div class="demo-step-top">
-            <span class="demo-step-badge">Step 4 • Vocab Quiz (Thread A)</span>
-            <button class="btn-run-step" onclick="executeDemoStep(4)">Run Step 4</button>
-          </div>
-          <div class="demo-step-prompt">Switches back to Thread A & quizzes accumulated vocab</div>
-          <div class="demo-step-purpose">Demonstrates quiz_vocab_node reading from the operator.add reducer channel.</div>
-        </div>
+      <div class="field">
+        <label for="cfgKey">API key (not needed for offline / Ollama)</label>
+        <input id="cfgKey" type="password" placeholder="sk-… / AIza…" autocomplete="off" />
       </div>
-    </div>
-  </div>
-
-  <!-- LLM Provider Configuration Modal -->
-  <div class="modal-backdrop" id="configModal" onclick="if(event.target===this) closeConfigModal()">
-    <div class="modal-window" style="max-width: 520px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span style="font-size: 1.2rem;">🤖</span>
-          <h3 class="modal-title">LLM Router & Model Settings</h3>
-        </div>
-        <button class="btn-close-modal" onclick="closeConfigModal()" title="Close">✕</button>
+      <div class="field">
+        <label for="cfgModel">Model</label>
+        <input id="cfgModel" type="text" placeholder="gemini-1.5-flash / gpt-4o-mini / llama3" />
       </div>
-
-      <div class="modal-body">
-        <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">
-          Configure live AI generation for dynamic intent routing and multilingual chat, or switch to the offline simulator.
-        </p>
-
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div>
-            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px;">Provider</label>
-            <select id="configProvider" onchange="onProviderSelectChange()" style="width: 100%; background: var(--bg-base); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.88rem; outline: none;">
-              <option value="gemini">Google Gemini (Recommended — fast & high quality)</option>
-              <option value="openai">OpenAI (GPT-4o-mini / GPT-4o)</option>
-              <option value="ollama">Ollama (Local & Private, localhost:11434)</option>
-              <option value="offline">Offline Demo Simulator (Zero API keys, deterministic)</option>
-            </select>
-          </div>
-
-          <div id="apiKeyGroup">
-            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px;">API Key</label>
-            <input type="password" id="configApiKey" placeholder="Enter Gemini or OpenAI API key..." style="width: 100%; background: var(--bg-base); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; outline: none;" />
-            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 4px;">Saved in your local server session.</span>
-          </div>
-
-          <div>
-            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px;">Model Name</label>
-            <input type="text" id="configModel" placeholder="e.g. gemini-1.5-flash or gpt-4o-mini" style="width: 100%; background: var(--bg-base); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; outline: none;" />
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
-            <button class="btn-action" onclick="closeConfigModal()">Cancel</button>
-            <button class="btn-new-chat" style="width: auto; padding: 8px 18px;" onclick="saveConfig()">Save & Apply</button>
-          </div>
-        </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" id="cfgCancel">Cancel</button>
+        <button class="btn btn-primary" type="button" id="cfgSave">Save</button>
       </div>
     </div>
   </div>
 
   <script>
-    // State management
-    let currentThreadId = "thread-A";
-    const currentUserId = "sam_user";
-    let activeThreadsList = ["thread-A"];
-    let graphMode = "mermaid";
-    let graphCache = null;
+    const USER_ID = "sam_user";
+    let currentThread = "thread-A";
+    let threads = ["thread-A"];
+    let busy = false;
 
-    // Initialize mermaid
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      themeVariables: {
-        primaryColor: '#6366f1',
-        primaryTextColor: '#f8fafc',
-        primaryBorderColor: '#818cf8',
-        lineColor: '#94a3b8',
-        secondaryColor: '#1e293b',
-        tertiaryColor: '#0f172a'
+    const els = {
+      threadSelect: document.getElementById("threadSelect"),
+      messages: document.getElementById("messages"),
+      emptyState: document.getElementById("emptyState"),
+      input: document.getElementById("input"),
+      composer: document.getElementById("composer"),
+      status: document.getElementById("status"),
+      vocabList: document.getElementById("vocabList"),
+      profileName: document.getElementById("profileName"),
+      profileLang: document.getElementById("profileLang"),
+      profileLevel: document.getElementById("profileLevel"),
+      mermaidMount: document.getElementById("mermaidMount"),
+      asciiMount: document.getElementById("asciiMount"),
+    };
+
+    mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+
+    function setStatus(text, isError = false) {
+      els.status.textContent = text;
+      els.status.classList.toggle("error", isError);
+    }
+
+    function renderThreads() {
+      els.threadSelect.innerHTML = threads.map((t) =>
+        `<option value="${t}" ${t === currentThread ? "selected" : ""}>${t}</option>`
+      ).join("");
+    }
+
+    function renderProfile(profile) {
+      if (!profile) return;
+      els.profileName.textContent = profile.name || "Learner";
+      els.profileLang.textContent = profile.target_language || "Spanish";
+      els.profileLevel.textContent = profile.level || "beginner";
+    }
+
+    function renderVocab(list) {
+      if (!list || !list.length) {
+        els.vocabList.innerHTML = `<span class="chip empty">No words yet — chat or translate</span>`;
+        return;
       }
-    });
-
-    // On DOM Load
-    window.addEventListener('DOMContentLoaded', async () => {
-      await loadConfig();
-      await loadThreads();
-      await loadProfile();
-      await loadHistory(currentThreadId);
-      await loadGraph();
-    });
-
-    // Sidebar Toggle
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('collapsed');
+      els.vocabList.innerHTML = list.map((v) => `<span class="chip">${escapeHtml(v)}</span>`).join("");
     }
 
-    // View Switching (Chat vs Graph)
-    function switchView(view) {
-      const tabChat = document.getElementById('tabChat');
-      const tabGraph = document.getElementById('tabGraph');
-      const chatView = document.getElementById('chatView');
-      const graphView = document.getElementById('graphView');
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
 
-      if (view === 'chat') {
-        tabChat.classList.add('active');
-        tabGraph.classList.remove('active');
-        chatView.style.display = 'flex';
-        graphView.classList.remove('active');
-      } else {
-        tabGraph.classList.add('active');
-        tabChat.classList.remove('active');
-        chatView.style.display = 'none';
-        graphView.classList.add('active');
-        renderGraph();
+    function formatMdLite(text) {
+      return escapeHtml(text)
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\n/g, "<br>");
+    }
+
+    function clearMessages() {
+      els.messages.innerHTML = "";
+      els.messages.appendChild(els.emptyState);
+      els.emptyState.style.display = "block";
+    }
+
+    function ensureChatStarted() {
+      els.emptyState.style.display = "none";
+      if (els.emptyState.parentElement === els.messages) {
+        els.emptyState.remove();
       }
     }
 
-    // Modal Control
-    function openDemoModal() {
-      document.getElementById('demoModal').classList.add('open');
+    function appendBubble(role, content, meta = null) {
+      ensureChatStarted();
+      const row = document.createElement("div");
+      row.className = `bubble-row ${role}`;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = formatMdLite(content);
+      row.appendChild(bubble);
+      if (meta && role === "assistant") {
+        const metaEl = document.createElement("div");
+        metaEl.className = "meta";
+        const intent = meta.intent || "—";
+        const full = meta.full_count ?? "?";
+        const trim = meta.trimmed_count ?? "?";
+        const fTok = meta.full_token_estimate ?? "?";
+        const tTok = meta.trimmed_token_estimate ?? "?";
+        const dropped = meta.filtered_dropped ?? 0;
+        metaEl.innerHTML = `
+          <span class="intent">routed: ${escapeHtml(intent)}</span>
+          <span class="trim">sent to model: ${trim} of ${full} msgs (~${tTok} of ~${fTok} tok)${dropped ? ` · filtered ${dropped}` : ""}</span>
+        `;
+        row.appendChild(metaEl);
+      }
+      els.messages.appendChild(row);
+      els.messages.scrollTop = els.messages.scrollHeight;
     }
 
-    function closeDemoModal() {
-      document.getElementById('demoModal').classList.remove('open');
+    async function api(path, options = {}) {
+      const res = await fetch(path, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || res.statusText);
+      }
+      return res.json();
     }
 
-    // Graph Display Toggle
-    function toggleGraphMode(mode) {
-      graphMode = mode;
-      renderGraph();
+    async function loadProfile() {
+      const data = await api(`/api/profile/${USER_ID}`);
+      renderProfile(data.profile);
+    }
+
+    async function loadHistory(threadId) {
+      const data = await api(`/api/history/${threadId}`);
+      clearMessages();
+      renderVocab(data.vocab_learned || []);
+      const msgs = data.messages || [];
+      if (!msgs.length) return;
+      msgs.forEach((m, idx) => {
+        const isLastAssistant = m.role === "assistant" && idx === msgs.length - 1;
+        appendBubble(
+          m.role === "user" ? "user" : "assistant",
+          m.content,
+          isLastAssistant ? data.trim_info : null
+        );
+      });
+    }
+
+    async function refreshThreadsFromServer() {
+      try {
+        const data = await api("/api/threads");
+        const serverThreads = data.threads || [];
+        threads = Array.from(new Set(["thread-A", ...threads, ...serverThreads]));
+        if (!threads.includes(currentThread)) currentThread = threads[0];
+        renderThreads();
+      } catch (_) {
+        renderThreads();
+      }
+    }
+
+    async function sendMessage(text) {
+      const message = (text ?? els.input.value).trim();
+      if (!message || busy) return;
+      busy = true;
+      els.input.value = "";
+      appendBubble("user", message);
+      setStatus("Thinking…");
+      try {
+        const data = await api("/api/chat", {
+          method: "POST",
+          body: JSON.stringify({
+            thread_id: currentThread,
+            user_id: USER_ID,
+            message,
+          }),
+        });
+        if (!threads.includes(currentThread)) {
+          threads.push(currentThread);
+          renderThreads();
+        }
+        appendBubble("assistant", data.reply || "(empty reply)", data);
+        renderVocab(data.vocab_learned || []);
+        renderProfile(data.profile);
+        setStatus(`OK · intent ${data.intent} · model saw ${data.trimmed_count}/${data.full_count} messages`);
+      } catch (err) {
+        setStatus(`Error: ${err.message}`, true);
+      } finally {
+        busy = false;
+      }
     }
 
     async function loadGraph() {
       try {
-        const res = await fetch('/api/graph');
-        graphCache = await res.json();
+        const data = await api("/api/graph");
+        els.asciiMount.textContent = data.ascii || "";
+        els.mermaidMount.textContent = data.mermaid || "graph TD; A-->B;";
+        els.mermaidMount.removeAttribute("data-processed");
+        await mermaid.run({ nodes: [els.mermaidMount] });
       } catch (err) {
-        console.error('Error fetching graph:', err);
+        els.mermaidMount.textContent = `Failed to load graph: ${err.message}`;
       }
     }
 
-    async function renderGraph() {
-      if (!graphCache) await loadGraph();
-      const mermaidEl = document.getElementById('mermaidDiagram');
-      const asciiEl = document.getElementById('asciiDiagram');
-      const btnMermaid = document.getElementById('btnMermaidToggle');
-      const btnAscii = document.getElementById('btnAsciiToggle');
-
-      if (graphMode === 'mermaid') {
-        mermaidEl.style.display = 'block';
-        asciiEl.style.display = 'none';
-        btnMermaid.classList.add('active');
-        btnAscii.classList.remove('active');
-
-        if (graphCache && graphCache.mermaid) {
-          mermaidEl.innerHTML = graphCache.mermaid;
-          mermaidEl.removeAttribute('data-processed');
-          await mermaid.run({ nodes: [mermaidEl] });
-        }
-      } else {
-        mermaidEl.style.display = 'none';
-        asciiEl.style.display = 'block';
-        btnAscii.classList.add('active');
-        btnMermaid.classList.remove('active');
-        if (graphCache && graphCache.ascii) {
-          asciiEl.textContent = graphCache.ascii;
-        }
-      }
-    }
-
-    // Threads Management
-    async function loadThreads() {
-      try {
-        const res = await fetch('/api/threads');
-        const data = await res.json();
-        activeThreadsList = data.threads || [];
-        if (!activeThreadsList.includes(currentThreadId)) {
-          activeThreadsList.push(currentThreadId);
-        }
-        renderThreadsList();
-      } catch (err) {
-        console.error('Error loading threads:', err);
-        renderThreadsList();
-      }
-    }
-
-    function renderThreadsList() {
-      const container = document.getElementById('threadsList');
-      const countBadge = document.getElementById('threadsCountBadge');
-      container.innerHTML = '';
-      countBadge.textContent = `${activeThreadsList.length} active`;
-
-      activeThreadsList.forEach(t => {
-        const item = document.createElement('div');
-        item.className = `thread-item ${t === currentThreadId ? 'active' : ''}`;
-        item.onclick = () => switchThread(t);
-
-        item.innerHTML = `
-          <div class="thread-title-wrap">
-            <span class="thread-active-dot" style="${t === currentThreadId ? '' : 'opacity: 0.3;'}"></span>
-            <span>${t}</span>
-          </div>
-          ${t === currentThreadId ? '<span style="font-size:0.65rem; color:var(--primary-light);">Current</span>' : ''}
-        `;
-        container.appendChild(item);
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.view === "graph" ? "viewGraph" : "viewChat").classList.add("active");
+        if (tab.dataset.view === "graph") loadGraph();
       });
+    });
 
-      document.getElementById('activeThreadLabel').textContent = `Thread: ${currentThreadId}`;
-    }
-
-    async function switchThread(threadId) {
-      if (currentThreadId === threadId) return;
-      currentThreadId = threadId;
-      renderThreadsList();
-      await loadHistory(currentThreadId);
-    }
-
-    async function createNewThread() {
-      const nextChar = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-      const newId = `thread-${nextChar}${Math.floor(Math.random() * 90 + 10)}`;
-      currentThreadId = newId;
-
-      if (!activeThreadsList.includes(newId)) {
-        activeThreadsList.push(newId);
-      }
-      renderThreadsList();
-
-      // Clear message screen & show empty state
-      const chatMessages = document.getElementById('chatMessages');
-      chatMessages.innerHTML = '';
-      showEmptyState();
-
-      // Reset thread vocab list
-      updateVocabUI([]);
-    }
-
-    function showEmptyState() {
-      const chatMessages = document.getElementById('chatMessages');
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-chat-welcome';
-      emptyState.id = 'emptyWelcomeState';
-      emptyState.innerHTML = `
-        <div class="welcome-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m5 8 6 6"></path>
-            <path d="m4 14 6-6 2-3"></path>
-            <path d="M2 5h12"></path>
-            <path d="M7 2h1"></path>
-            <path d="m22 22-5-10-5 10"></path>
-            <path d="M14 18h6"></path>
-          </svg>
-        </div>
-        <h2 class="welcome-heading">New practice session started</h2>
-        <p class="welcome-sub">
-          This thread maintains isolated short-term memory (chat history & vocab). Your long-term profile is automatically remembered!
-        </p>
-        <div class="starter-cards">
-          <button class="starter-card" onclick="sendQuickPrompt('Translate: Hello, my friend! How are you?')">
-            <div class="starter-card-title"><span>🔤</span> Translate Phrase</div>
-            <div class="starter-card-desc">Translate any phrase and understand nuance</div>
-          </button>
-          <button class="starter-card" onclick="sendQuickPrompt('Explain grammar: Difference between Ser and Estar')">
-            <div class="starter-card-title"><span>📖</span> Grammar Breakdown</div>
-            <div class="starter-card-desc">Understand tricky rules and conjugations</div>
-          </button>
-          <button class="starter-card" onclick="sendQuickPrompt('Quiz me on our vocabulary!')">
-            <div class="starter-card-title"><span>🎯</span> Quiz Vocabulary</div>
-            <div class="starter-card-desc">Practice words accumulated in this thread</div>
-          </button>
-          <button class="starter-card" onclick="sendQuickPrompt('Let\\'s practice conversation about ordering food.')">
-            <div class="starter-card-title"><span>💬</span> Free Conversation</div>
-            <div class="starter-card-desc">Roleplay in your target language</div>
-          </button>
-        </div>
-      `;
-      chatMessages.appendChild(emptyState);
-    }
-
-    // Profile Management (Topic 4)
-    async function loadProfile() {
-      try {
-        const res = await fetch(`/api/profile/${currentUserId}`);
-        const data = await res.json();
-        updateProfileUI(data.profile);
-      } catch (err) {
-        console.error('Error loading profile:', err);
-      }
-    }
-
-    function updateProfileUI(profile) {
-      if (!profile) return;
-      document.getElementById('profileName').textContent = profile.name || 'Learner';
-      document.getElementById('profileLang').textContent = profile.target_language || 'Spanish';
-      document.getElementById('profileLevel').textContent = profile.level || 'beginner';
-    }
-
-    // Vocab Learned (Topic 2)
-    function updateVocabUI(vocabList) {
-      const container = document.getElementById('vocabList');
-      const badge = document.getElementById('vocabCountBadge');
-      const list = vocabList || [];
-
-      badge.textContent = `${list.length} word${list.length === 1 ? '' : 's'}`;
-
-      if (list.length === 0) {
-        container.innerHTML = '<div class="vocab-empty">No vocabulary learned in this thread yet.</div>';
-        return;
-      }
-
-      container.innerHTML = '';
-      list.forEach((item, idx) => {
-        const chip = document.createElement('span');
-        chip.className = 'vocab-chip';
-        chip.innerHTML = `<span>📖 ${escapeHtml(item)}</span>`;
-        container.appendChild(chip);
-      });
-    }
-
-    // History (Checkpointer State)
-    async function loadHistory(threadId) {
-      try {
-        const res = await fetch(`/api/history/${threadId}`);
-        const data = await res.json();
-
-        const chatMessages = document.getElementById('chatMessages');
-        chatMessages.innerHTML = '';
-
-        if (data.messages && data.messages.length > 0) {
-          data.messages.forEach(msg => {
-            appendMessage(msg.role, msg.content, null);
-          });
-        } else {
-          showEmptyState();
-        }
-
-        updateVocabUI(data.vocab_learned);
-      } catch (err) {
-        console.error('Error loading history:', err);
-      }
-    }
-
-    // Send Quick Prompt from Starter Card
-    function sendQuickPrompt(promptText) {
-      setInput(promptText);
+    els.composer.addEventListener("submit", (e) => {
+      e.preventDefault();
       sendMessage();
-    }
+    });
 
-    // Message Sending & Invocation
-    async function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text) return;
+    els.input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
-      // Remove welcome state if visible
-      const emptyState = document.getElementById('emptyWelcomeState');
-      if (emptyState) emptyState.remove();
+    document.getElementById("btnNewThread").addEventListener("click", async () => {
+      const id = `thread-${String.fromCharCode(65 + threads.length)}`;
+      // fallback unique id if letter overflows
+      const threadId = threads.includes(id) ? `thread-${Date.now().toString(36)}` : id;
+      threads.push(threadId);
+      currentThread = threadId;
+      renderThreads();
+      clearMessages();
+      renderVocab([]);
+      setStatus(`Switched to ${threadId} — empty short-term memory; profile still loaded`);
+      await loadProfile();
+    });
 
-      input.value = '';
-      appendMessage('user', text, null);
+    els.threadSelect.addEventListener("change", async () => {
+      currentThread = els.threadSelect.value;
+      setStatus(`Loaded short-term memory for ${currentThread}`);
+      await loadHistory(currentThread);
+      await loadProfile();
+    });
 
-      const sendBtn = document.getElementById('sendBtn');
-      sendBtn.disabled = true;
+    document.getElementById("btnQuiz").addEventListener("click", () => {
+      sendMessage("Quiz me on our vocabulary!");
+    });
 
+    document.querySelectorAll(".scenario").forEach((btn) => {
+      btn.addEventListener("click", () => sendMessage(btn.dataset.msg));
+    });
+
+    document.querySelectorAll("[data-demo]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const step = btn.dataset.demo;
+        if (step === "1") {
+          currentThread = "thread-A";
+          if (!threads.includes("thread-A")) threads.unshift("thread-A");
+          renderThreads();
+          await sendMessage("My name is Sam and I'm learning French at beginner level.");
+        } else if (step === "2") {
+          currentThread = "thread-A";
+          renderThreads();
+          await sendMessage("I love food and croissants.");
+        } else if (step === "3") {
+          const threadId = threads.includes("thread-B") ? "thread-B" : "thread-B";
+          if (!threads.includes(threadId)) threads.push(threadId);
+          currentThread = threadId;
+          renderThreads();
+          clearMessages();
+          renderVocab([]);
+          await loadProfile();
+          await sendMessage("Hi, let's practice.");
+        } else if (step === "4") {
+          currentThread = "thread-A";
+          renderThreads();
+          await loadHistory("thread-A");
+          await sendMessage("Quiz me on our vocabulary!");
+        }
+      });
+    });
+
+    document.getElementById("btnReset").addEventListener("click", async () => {
+      await api("/api/reset", { method: "POST" });
+      threads = ["thread-A"];
+      currentThread = "thread-A";
+      renderThreads();
+      clearMessages();
+      renderVocab([]);
+      await loadProfile();
+      setStatus("Demo reset — checkpointer cleared, profile back to defaults");
+    });
+
+    const modal = document.getElementById("configModal");
+    document.getElementById("btnConfig").addEventListener("click", async () => {
       try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            thread_id: currentThreadId,
-            user_id: currentUserId,
-            message: text
-          })
-        });
+        const cfg = await api("/api/config");
+        document.getElementById("cfgProvider").value = cfg.provider || "offline";
+        document.getElementById("cfgModel").value = cfg.model || "";
+      } catch (_) {}
+      modal.classList.add("open");
+    });
+    document.getElementById("cfgCancel").addEventListener("click", () => modal.classList.remove("open"));
+    document.getElementById("cfgSave").addEventListener("click", async () => {
+      await api("/api/config", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: document.getElementById("cfgProvider").value,
+          api_key: document.getElementById("cfgKey").value,
+          model: document.getElementById("cfgModel").value,
+        }),
+      });
+      modal.classList.remove("open");
+      setStatus(`LLM provider set to ${document.getElementById("cfgProvider").value}`);
+    });
 
-        const data = await res.json();
-
-        // Update UI with reply and micro-telemetry (Topic 3)
-        appendMessage('assistant', data.reply, {
-          trimmed_count: data.trimmed_count,
-          full_count: data.full_count,
-          trimmed_tokens: data.trimmed_token_estimate,
-          full_tokens: data.full_token_estimate,
-          intent: data.intent
-        });
-
-        // Update Vocab List (Topic 2)
-        updateVocabUI(data.vocab_learned);
-
-        // Update Long-Term Profile (Topic 4)
-        if (data.profile) {
-          updateProfileUI(data.profile);
-        }
-
-        // Ensure active thread is tracked
-        await loadThreads();
-
-      } catch (err) {
-        console.error('Error sending message:', err);
-        appendMessage('assistant', '⚠️ Error communicating with LinguaLoop backend.', null);
-      } finally {
-        sendBtn.disabled = false;
-        input.focus();
-      }
-    }
-
-    function appendMessage(role, content, telemetry) {
-      const container = document.getElementById('chatMessages');
-
-      const wrap = document.createElement('div');
-      wrap.className = `message-wrap ${role}`;
-
-      const header = document.createElement('div');
-      header.className = 'message-header';
-      header.innerHTML = role === 'user' ? '<span>You</span>' : '<span>LinguaLoop Partner</span>';
-      wrap.appendChild(header);
-
-      const bubble = document.createElement('div');
-      bubble.className = 'message-bubble';
-      bubble.textContent = content;
-      wrap.appendChild(bubble);
-
-      // Topic 3: Clean Micro-Telemetry under AI responses
-      if (role === 'assistant' && telemetry) {
-        const telemetryBar = document.createElement('div');
-        telemetryBar.className = 'message-telemetry';
-
-        const intentChip = document.createElement('div');
-        intentChip.className = 'telemetry-chip telemetry-intent';
-        intentChip.innerHTML = `<span>🎯 Intent:</span> <strong>${telemetry.intent}</strong>`;
-
-        const trimChip = document.createElement('div');
-        trimChip.className = 'telemetry-chip';
-        trimChip.title = `Applied trim_messages: kept ${telemetry.trimmed_count} of ${telemetry.full_count} messages within token budget`;
-        trimChip.innerHTML = `<span>✂️ Model Trim:</span> <strong>${telemetry.trimmed_count}/${telemetry.full_count} msgs</strong> (~${telemetry.trimmed_tokens}/~${telemetry.full_tokens} tok)`;
-
-        telemetryBar.appendChild(intentChip);
-        telemetryBar.appendChild(trimChip);
-        wrap.appendChild(telemetryBar);
-      }
-
-      container.appendChild(wrap);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function setInput(text) {
-      const input = document.getElementById('messageInput');
-      input.value = text;
-      input.focus();
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // Step-by-Step Guided Demo Execution
-    async function executeDemoStep(step) {
-      closeDemoModal();
-      switch (step) {
-        case 1:
-          switchView('chat');
-          setInput("My name is Sam and I'm learning French at beginner level.");
-          await sendMessage();
-          break;
-        case 2:
-          switchView('chat');
-          setInput("I love food and croissants.");
-          await sendMessage();
-          break;
-        case 3:
-          switchView('chat');
-          await createNewThread();
-          setInput("Hi, let's practice.");
-          await sendMessage();
-          break;
-        case 4:
-          switchView('chat');
-          await switchThread("thread-A");
-          setInput("Quiz me on our vocabulary!");
-          await sendMessage();
-          break;
-      }
-    }
-
-    // Reset Demo
-    async function resetDemo() {
-      if (confirm("Reset long-term profile and clear active threads?")) {
-        try {
-          await fetch('/api/reset', { method: 'POST' });
-          location.reload();
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    }
-
-    // LLM Config Management
-    function openConfigModal() {
-      document.getElementById('configModal').classList.add('open');
-    }
-
-    function closeConfigModal() {
-      document.getElementById('configModal').classList.remove('open');
-    }
-
-    function onProviderSelectChange() {
-      const provider = document.getElementById('configProvider').value;
-      const keyGroup = document.getElementById('apiKeyGroup');
-      const modelInput = document.getElementById('configModel');
-
-      if (provider === 'gemini') {
-        keyGroup.style.display = 'block';
-        if (!modelInput.value || modelInput.value.includes('gpt') || modelInput.value.includes('llama') || modelInput.value.includes('offline')) {
-          modelInput.value = 'gemini-1.5-flash';
-        }
-      } else if (provider === 'openai') {
-        keyGroup.style.display = 'block';
-        if (!modelInput.value || modelInput.value.includes('gemini') || modelInput.value.includes('llama') || modelInput.value.includes('offline')) {
-          modelInput.value = 'gpt-4o-mini';
-        }
-      } else if (provider === 'ollama') {
-        keyGroup.style.display = 'none';
-        if (!modelInput.value || modelInput.value.includes('gemini') || modelInput.value.includes('gpt') || modelInput.value.includes('offline')) {
-          modelInput.value = 'llama3';
-        }
-      } else {
-        keyGroup.style.display = 'none';
-        modelInput.value = 'demo-model';
-      }
-    }
-
-    async function loadConfig() {
+    (async function init() {
+      renderThreads();
+      await refreshThreadsFromServer();
+      await loadProfile();
+      await loadHistory(currentThread);
       try {
-        const res = await fetch('/api/config');
-        const data = await res.json();
-        const badge = document.getElementById('llmEngineBadge');
-        const providerSelect = document.getElementById('configProvider');
-        const modelInput = document.getElementById('configModel');
-
-        if (data.provider) providerSelect.value = data.provider;
-        if (data.model) modelInput.value = data.model;
-
-        onProviderSelectChange();
-
-        if (data.provider === 'gemini') {
-          badge.textContent = `🤖 Gemini (${data.model || '1.5-flash'})`;
-          const tabBadge = document.getElementById('tabLLMBadge');
-          if (tabBadge) tabBadge.textContent = `Gemini (${data.model || '1.5-flash'})`;
-        } else if (data.provider === 'openai') {
-          badge.textContent = `🤖 OpenAI (${data.model || 'gpt-4o-mini'})`;
-          const tabBadge = document.getElementById('tabLLMBadge');
-          if (tabBadge) tabBadge.textContent = `OpenAI (${data.model || 'gpt-4o-mini'})`;
-        } else if (data.provider === 'ollama') {
-          badge.textContent = `🦙 Ollama (${data.model || 'local'})`;
-          const tabBadge = document.getElementById('tabLLMBadge');
-          if (tabBadge) tabBadge.textContent = `Ollama (${data.model || 'local'})`;
-        } else {
-          badge.textContent = '🤖 LLM Engine: Offline';
-          const tabBadge = document.getElementById('tabLLMBadge');
-          if (tabBadge) tabBadge.textContent = 'LLM Engine';
-        }
-      } catch (err) {
-        console.error('Error loading LLM config:', err);
-      }
-    }
-
-    async function saveConfig() {
-      const provider = document.getElementById('configProvider').value;
-      const apiKey = document.getElementById('configApiKey').value.trim();
-      const model = document.getElementById('configModel').value.trim();
-
-      try {
-        const res = await fetch('/api/config', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            provider: provider,
-            api_key: apiKey || undefined,
-            model: model || undefined
-          })
-        });
-
-        await res.json();
-        closeConfigModal();
-        await loadConfig();
-      } catch (err) {
-        alert('Error saving config: ' + err.message);
-      }
-    }
+        const cfg = await api("/api/config");
+        setStatus(`Ready · provider: ${cfg.provider}${cfg.has_api_key ? " (key set)" : ""}`);
+      } catch (_) {}
+    })();
   </script>
 </body>
 </html>
